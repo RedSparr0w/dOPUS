@@ -16,88 +16,6 @@ extern float progressSpeed;
 namespace NXFramework
 {
 
-void DebugPrintInstallData(nx::ncm::ContentMeta& contentMeta, const FsStorageId destStorageId)
-{
-#ifdef DEBUG
-    NcmContentMetaDatabase contentMetaDatabase;
-    NcmMetaRecord metaRecord = contentMeta.GetContentMetaKey();
-    u64 baseTitleId = tin::util::GetBaseTitleId(metaRecord.titleId, static_cast<nx::ncm::ContentMetaType>(metaRecord.type));
-    u64 updateTitleId = baseTitleId ^ 0x800;
-    bool hasUpdate = true;
-
-    try
-    {
-        NcmMetaRecord latestApplicationContentMetaKey;
-        NcmMetaRecord latestPatchContentMetaKey;
-
-        ASSERT_OK(ncmOpenContentMetaDatabase(destStorageId, &contentMetaDatabase), "Failed to open content meta database");
-        ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, baseTitleId, &latestApplicationContentMetaKey), "Failed to get latest application content meta key");
-
-        try
-        {
-            ASSERT_OK(ncmContentMetaDatabaseGetLatestContentMetaKey(&contentMetaDatabase, updateTitleId, &latestPatchContentMetaKey), "Failed to get latest patch content meta key");
-        }
-        catch (std::exception& e)
-        {
-            hasUpdate = false;
-        }
-
-        u64 appContentRecordSize;
-        u64 appContentRecordSizeRead;
-        ASSERT_OK(ncmContentMetaDatabaseGetSize(&contentMetaDatabase, &latestApplicationContentMetaKey, &appContentRecordSize), "Failed to get application content record size");
-
-        auto appContentRecordBuf = std::make_unique<u8[]>(appContentRecordSize);
-        ASSERT_OK(ncmContentMetaDatabaseGet(&contentMetaDatabase, &latestApplicationContentMetaKey, appContentRecordSize, (NcmContentMetaRecordsHeader*)appContentRecordBuf.get(), &appContentRecordSizeRead), "Failed to get app content record size");
-
-        if (appContentRecordSize != appContentRecordSizeRead)
-        {
-            throw std::runtime_error("Mismatch between app content record size and content record size read");
-        }
-
-        LOG("Application content meta key: \n");
-        printBytes((u8*)&latestApplicationContentMetaKey, sizeof(NcmMetaRecord), true);
-        LOG("Application content meta: \n");
-        printBytes(appContentRecordBuf.get(), appContentRecordSize, true);
-
-        if (hasUpdate)
-        {
-            u64 patchContentRecordsSize;
-            u64 patchContentRecordSizeRead;
-            ASSERT_OK(ncmContentMetaDatabaseGetSize(&contentMetaDatabase, &latestPatchContentMetaKey, &patchContentRecordsSize), "Failed to get patch content record size");
-
-            auto patchContentRecordBuf = std::make_unique<u8[]>(patchContentRecordsSize);
-            ASSERT_OK(ncmContentMetaDatabaseGet(&contentMetaDatabase, &latestPatchContentMetaKey, patchContentRecordsSize, (NcmContentMetaRecordsHeader*)patchContentRecordBuf.get(), &patchContentRecordSizeRead), "Failed to get patch content record size");
-
-            if (patchContentRecordsSize != patchContentRecordSizeRead)
-            {
-                throw std::runtime_error("Mismatch between app content record size and content record size read");
-            }
-
-            LOG("Patch content meta key: \n");
-            printBytes((u8*)&latestPatchContentMetaKey, sizeof(NcmMetaRecord), true);
-            LOG("Patch content meta: \n");
-            printBytes(patchContentRecordBuf.get(), patchContentRecordsSize, true);
-        }
-        else
-        {
-            LOG("No update records found, or an error occurred.\n");
-        }
-
-        auto appRecordBuf = std::make_unique<u8[]>(0x100);
-        u32 numEntriesRead;
-        ASSERT_OK(nsListApplicationRecordContentMeta(0, baseTitleId, appRecordBuf.get(), 0x100, &numEntriesRead), "Failed to list application record content meta");
-
-        LOG("Application record content meta: \n");
-        printBytes(appRecordBuf.get(), 0x100, true);
-    }
-    catch (std::runtime_error& e)
-    {
-        serviceClose(&contentMetaDatabase.s);
-        LOG("Failed to log install data. Error: %s", e.what());
-    }
-#endif
-}
-
 std::tuple<std::string, nx::ncm::ContentRecord> GetCNMTNCAInfo(std::string nspPath)
 {
     // Open filesystem
@@ -398,18 +316,12 @@ bool InstallNSP(const std::string& filename, const FsStorageId destStorageId, co
         ///////////////////////////////////////////////////////
 
         LOG("                    \n");
-        LOG("Pre Install Records: \n");
-        DebugPrintInstallData(contentMeta, destStorageId);
-
         LOG("Installing NCAs...\n");
         for (auto& record : contentMeta.GetContentRecords())
         {
             LOG("Installing from %s\n", tin::util::GetNcaIdString(record.ncaId).c_str());
             InstallNCA(simpleFS, record.ncaId, destStorageId);
         }
-        LOG("                    \n");
-        LOG("Post Install Records: \n");
-        DebugPrintInstallData(contentMeta, destStorageId);
     }
     catch (std::exception& e)
     {

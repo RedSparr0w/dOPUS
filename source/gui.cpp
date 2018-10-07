@@ -146,8 +146,9 @@ void GUI::Render(const double timer)
     // Title
     int height = 0;
     int width  = 0;
-    TTF_SizeText(fonts[Roboto], "dOPUS 0.6 by HyDE", &width, &height);
-    SDL::DrawText(SDL::Renderer, fonts[Roboto], 12, (40 - height) / 2, CYAN, "dOPUS 0.6 by HyDE");
+    std::string appTitle("dOPUS 0.6 by HyDE");
+    TTF_SizeText(fonts[Roboto], appTitle.c_str(), &width, &height);
+    SDL::DrawText(SDL::Renderer, fonts[Roboto], 12, (40 - height) / 2, CYAN, appTitle.c_str());
 
     // Free space
     {

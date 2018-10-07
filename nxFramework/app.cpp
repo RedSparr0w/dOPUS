@@ -81,19 +81,19 @@ void App::Exit()
 
 void App::Initialize_Internal()
 {
-    if (R_FAILED(romfsInit()))        LOG("romfsInit failed!\n");
-	SDL_Init(SDL_INIT_EVERYTHING);
-    if (R_FAILED(timeInitialize()))   LOG("timeInitialize failed!\n");
-    if (R_FAILED(psmInitialize()))    LOG("psmInitialize failed!\n");
-
-    if (R_FAILED(ncmextInitialize())) LOG("ncmextInitialize failed!\n");
     if (R_FAILED(ncmInitialize()))    LOG("ncmInitialize failed!\n");
     if (R_FAILED(nsInitialize()))     LOG("nsInitialize failed!\n");
     if (R_FAILED(nsextInitialize()))  LOG("nsextInitialize failed!\n");
     if (R_FAILED(esInitialize()))     LOG("esInitialize failed!\n");
     if (R_FAILED(nifmInitialize()))   LOG("nifmInitialize failed!\n");
+    if (R_FAILED(psmInitialize()))    LOG("psmInitialize failed!\n");
+    if (R_FAILED(setInitialize()))    LOG("setInitialize failed!\n");
+    if (R_FAILED(plInitialize()))     LOG("plInitialize failed!\n");
+    if (R_FAILED(romfsInit()))        LOG("romfsInit failed!\n");
+    if (R_FAILED(timeInitialize()))   LOG("timeInitialize failed!\n");
 
     // SDL
+	SDL_Init(SDL_INIT_EVERYTHING);
     SDL::Initialize(1280, 720);
 
 	// IMG
@@ -117,18 +117,18 @@ void App::Shutdown_Internal()
 
 	// SDL
 	SDL::Shutdown();
-
-	nifmExit();
-    ncmextExit();
-    ncmExit();
-    nsExit();
-    nsextExit();
-    esExit();
-
-	psmExit();
-	timeExit();
 	SDL_Quit();
+
+	timeExit();
 	romfsExit();
+    plExit();
+    setExit();
+    psmExit();
+    nifmExit();
+    esExit();
+    nsextExit();
+    nsExit();
+    ncmExit();
 }
 
 void App::Render_Internal()
