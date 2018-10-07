@@ -5,6 +5,14 @@ dOPUS is an installer and converter of NSP and XCI files for the Nintendo Switch
 
 DISCLAIMER: Use dOPUS at your own risk. I'm not responsible for any damage, data loss, or anything else dOPUS may cause.
 
+## Features
+* File browser like interface
+* Install or "Install & Delete" NSP, XCI
+* Install an extracted NSP or XCI (NCA folder)
+* Extract NSP, XCI to a folder
+* Convert XCI to NSP
+* Can install split NSP and XCI files on a FAT32 SD Card, more information [here]https://gbatemp.net/threads/how-to-split-nsps-for-fat32.520157/
+
 ## Installation
 * Place dOPUS.nro in /switch folder on your sd card.
 * Requires `sdmc:/keys.dat` in order to extract/install XCI files. 
